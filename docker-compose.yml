@@ -1,0 +1,254 @@
+services:
+  # ========== DATABASE ==========
+  mysql-db:
+    image: mysql:8.0
+    container_name: mysql-db
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: itt440_db
+      MYSQL_USER: itt440_user
+      MYSQL_PASSWORD: itt440_pass
+    ports:
+      - "3306:3306"
+    networks:
+      - itt440-network
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./mysql-init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "itt440_user", "-pitt440_pass"]
+      timeout: 20s
+      retries: 10
+
+  # ========== PYTHON SERVERS (3) ==========
+  python-server1:
+    build:
+      context: .
+      dockerfile: Dockerfile.python-server
+    container_name: python-server1
+    ports:
+      - "5001:5001"
+    networks:
+      - itt440-network
+    depends_on:
+      mysql-db:
+        condition: service_healthy
+    environment:
+      DB_HOST: mysql-db
+      DB_USER: itt440_user
+      DB_PASSWORD: itt440_pass
+      DB_NAME: itt440_db
+      SERVER_PORT: 5001
+      USER_NAME: python_user
+    volumes:
+      - .:/app
+
+  python-server2:
+    build:
+      context: .
+      dockerfile: Dockerfile.python-server
+    container_name: python-server2
+    ports:
+      - "5003:5003"
+    networks:
+      - itt440-network
+    depends_on:
+      mysql-db:
+        condition: service_healthy
+    environment:
+      DB_HOST: mysql-db
+      DB_USER: itt440_user
+      DB_PASSWORD: itt440_pass
+      DB_NAME: itt440_db
+      SERVER_PORT: 5003
+      USER_NAME: python_user2
+    volumes:
+      - .:/app
+
+  python-server3:
+    build:
+      context: .
+      dockerfile: Dockerfile.python-server
+    container_name: python-server3
+    ports:
+      - "5005:5005"
+    networks:
+      - itt440-network
+    depends_on:
+      mysql-db:
+        condition: service_healthy
+    environment:
+      DB_HOST: mysql-db
+      DB_USER: itt440_user
+      DB_PASSWORD: itt440_pass
+      DB_NAME: itt440_db
+      SERVER_PORT: 5005
+      USER_NAME: python_user3
+    volumes:
+      - .:/app
+
+  # ========== C SERVERS (3) ==========
+  c-server1:
+    image: gcc:latest
+    container_name: c-server1
+    working_dir: /app
+    command: sh -c "apt-get update && apt-get install -y -qq default-libmysqlclient-dev libjson-c-dev && gcc -o c_server c_server_simple.c -lmysqlclient -ljson-c -pthread && ./c_server"
+    ports:
+      - "5002:5002"
+    networks:
+      - itt440-network
+    depends_on:
+      mysql-db:
+        condition: service_healthy
+    environment:
+      DB_HOST: mysql-db
+      DB_USER: itt440_user
+      DB_PASSWORD: itt440_pass
+      DB_NAME: itt440_db
+      SERVER_PORT: 5002
+      USER_NAME: c_user
+    volumes:
+      - .:/app
+
+  c-server2:
+    image: gcc:latest
+    container_name: c-server2
+    working_dir: /app
+    command: sh -c "apt-get update && apt-get install -y -qq default-libmysqlclient-dev libjson-c-dev && gcc -o c_server c_server_simple.c -lmysqlclient -ljson-c -pthread && ./c_server"
+    ports:
+      - "5004:5004"
+    networks:
+      - itt440-network
+    depends_on:
+      mysql-db:
+        condition: service_healthy
+    environment:
+      DB_HOST: mysql-db
+      DB_USER: itt440_user
+      DB_PASSWORD: itt440_pass
+      DB_NAME: itt440_db
+      SERVER_PORT: 5004
+      USER_NAME: c_user2
+    volumes:
+      - .:/app
+
+  c-server3:
+    image: gcc:latest
+    container_name: c-server3
+    working_dir: /app
+    command: sh -c "apt-get update && apt-get install -y -qq default-libmysqlclient-dev libjson-c-dev && gcc -o c_server c_server_simple.c -lmysqlclient -ljson-c -pthread && ./c_server"
+    ports:
+      - "5006:5006"
+    networks:
+      - itt440-network
+    depends_on:
+      mysql-db:
+        condition: service_healthy
+    environment:
+      DB_HOST: mysql-db
+      DB_USER: itt440_user
+      DB_PASSWORD: itt440_pass
+      DB_NAME: itt440_db
+      SERVER_PORT: 5006
+      USER_NAME: c_user3
+    volumes:
+      - .:/app
+
+  # ========== PYTHON CLIENTS (3) ==========
+  python-client1:
+    image: python:3.9-slim
+    container_name: python-client1
+    working_dir: /app
+    command: sh -c "python python_client.py"
+    networks:
+      - itt440-network
+    depends_on:
+      - python-server1
+    environment:
+      SERVER_HOST: python-server1
+      SERVER_PORT: 5001
+    volumes:
+      - .:/app
+
+  python-client2:
+    image: python:3.9-slim
+    container_name: python-client2
+    working_dir: /app
+    command: sh -c "python python_client.py"
+    networks:
+      - itt440-network
+    depends_on:
+      - python-server2
+    environment:
+      SERVER_HOST: python-server2
+      SERVER_PORT: 5003
+    volumes:
+      - .:/app
+
+  python-client3:
+    image: python:3.9-slim
+    container_name: python-client3
+    working_dir: /app
+    command: sh -c "python python_client.py"
+    networks:
+      - itt440-network
+    depends_on:
+      - python-server3
+    environment:
+      SERVER_HOST: python-server3
+      SERVER_PORT: 5005
+    volumes:
+      - .:/app
+
+  # ========== C CLIENTS (3) ==========
+  c-client1:
+    image: gcc:latest
+    container_name: c-client1
+    working_dir: /app
+    command: sh -c "gcc -o c_client c_client_final.c && ./c_client"
+    networks:
+      - itt440-network
+    depends_on:
+      - c-server1
+    environment:
+      SERVER_HOST: c-server1
+      SERVER_PORT: 5002
+    volumes:
+      - .:/app
+
+  c-client2:
+    image: gcc:latest
+    container_name: c-client2
+    working_dir: /app
+    command: sh -c "gcc -o c_client c_client_final.c && ./c_client"
+    networks:
+      - itt440-network
+    depends_on:
+      - c-server2
+    environment:
+      SERVER_HOST: c-server2
+      SERVER_PORT: 5004
+    volumes:
+      - .:/app
+
+  c-client3:
+    image: gcc:latest
+    container_name: c-client3
+    working_dir: /app
+    command: sh -c "gcc -o c_client c_client_final.c && ./c_client"
+    networks:
+      - itt440-network
+    depends_on:
+      - c-server3
+    environment:
+      SERVER_HOST: c-server3
+      SERVER_PORT: 5006
+    volumes:
+      - .:/app
+
+networks:
+  itt440-network:
+    driver: bridge
+
+volumes:
+  mysql-data:
