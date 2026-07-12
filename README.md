@@ -68,7 +68,7 @@ The objectives of this project are:
 | json-c library | JSON serialization in the C server |
 | mysql-connector-python | MySQL driver for Python |
 | default-libmysqlclient-dev | MySQL C client library |
-| VS Code | Source code editor |
+| WSL | Source code editor |
 | TCP Socket | Communication protocol |
 
 ---
