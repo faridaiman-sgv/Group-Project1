@@ -430,58 +430,7 @@ docker compose down
 
 ---
 
-## 10. Testing and Results
-
-### Start Containers
-
-```bash
-docker compose up --build
-```
-
-*(Insert a screenshot here showing all 13 containers building and starting.)*
-
-### Verify Running Containers
-
-```bash
-docker ps
-```
-
-*(Insert a screenshot here showing all containers with status "Up".)*
-
-### Access MySQL, Enter Password, and Query Database
-
-```bash
-docker exec -it mysql-db mysql -u itt440_user -p itt440_db
-```
-
-```sql
-USE itt440_db;
-
-SELECT * FROM user_points;
-```
-
-*(Insert a screenshot here showing the `user_points` table with increasing points and updated timestamps for all 6 users.)*
-
-### Verify Client Output
-
-```bash
-docker logs -f python-client1
-docker logs -f c-client1
-```
-
-*(Insert a screenshot here showing each client printing "User: ..., Points: ..., Time: ..." every 10 seconds.)*
-
-### Stop Containers
-
-```bash
-docker compose down
-```
-
-*(Insert a screenshot here showing all containers stopping cleanly.)*
-
----
-
-## 11. Problems Faced
+## 10. Problems Faced
 
 | Problem | Solution |
 |---|---|
@@ -494,7 +443,7 @@ docker compose down
 
 ---
 
-## 12. Conclusion
+## 11. Conclusion
 
 The objectives of the project were successfully achieved.
 
